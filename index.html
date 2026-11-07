@@ -7,15 +7,15 @@
 <style>
   .btn-extensao {
   position: fixed;
-  top: 12px;
-  right: 16px;
+  top: 20px;
+  left: 400px;
   z-index: 1000;
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 10px 16px;
-  background: #1c1d22;
-  color: #78b5b9;
+  background: #f2f2f7;
+  color: #a10a2b;
   border: none;
   border-radius: 6px;
   font-size: 13px;
@@ -43,6 +43,16 @@ p.sub{margin:0;color:var(--mute);font-size:.92rem}
 header{grid-column:1/-1}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
 .ticket{border-top:6px solid var(--or)}
+.dd{position:relative;display:inline-block;margin-bottom:12px}
+.dd-toggle{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:180px;padding:9px 14px;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:10px;font:inherit;cursor:pointer}
+.dd-toggle:hover{border-color:var(--mute)}
+.dd-toggle svg{transition:transform .15s}
+.dd-toggle[aria-expanded="true"] svg{transform:rotate(180deg)}
+.dd-menu{position:absolute;top:calc(100% + 6px);left:0;right:0;margin:0;padding:4px;list-style:none;background:var(--card);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.35);z-index:30}
+.dd-menu[hidden]{display:none}
+.dd-menu button{display:block;width:100%;text-align:left;border:0;background:transparent;color:var(--ink);padding:9px 12px;border-radius:7px;font:inherit;cursor:pointer}
+.dd-menu button:hover{background:var(--cell)}
+.dd-menu button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:12px}
 .seg button{border:0;background:transparent;color:var(--ink);padding:9px 14px;font:inherit;cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
@@ -77,6 +87,28 @@ input[type=number]{width:64px;padding:9px 8px;border:1px solid var(--line);borde
 @media(max-width:420px){.grid{gap:3px}.n{font-size:.8rem;border-radius:6px}}
 
 [hidden]{display:none!important}
+.res{grid-column:1/-1}
+@media(min-width:1240px){main{max-width:1320px;grid-template-columns:minmax(0,540px) minmax(0,340px) minmax(0,1fr)}.res{grid-column:3;grid-row:2}}
+.res .row{margin-bottom:10px}
+input#conc{width:96px}
+.drawn{display:flex;flex-wrap:wrap;gap:4px;margin:10px 0}
+.drawn span{background:var(--cell);border-radius:6px;padding:2px 7px;font:600 .85rem/1.5 inherit;font-variant-numeric:tabular-nums}
+.hit{background:var(--or);color:var(--or-ink);border-radius:5px;padding:0 3px;font-weight:800}
+.badge{font-size:.8rem;font-weight:600;padding:2px 9px;border-radius:999px;background:var(--cell);color:var(--ink);white-space:nowrap}
+.badge.win{background:var(--or);color:var(--or-ink);font-weight:800}
+.warn{border-left:3px solid var(--or);padding:6px 10px;background:var(--cell);border-radius:6px;font-size:.88rem;margin:8px 0}
+.qtylabel{font-size:.9rem;color:var(--mute)}
+.top{grid-column:1/-1}
+.top .row{margin-bottom:10px}
+#tFrom,#tTo{width:96px}
+.topgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin-top:12px}
+.tc{border:1px solid var(--line);border-radius:8px;overflow:hidden;text-align:center}
+.tc .tb{background:var(--cell);padding:8px 0;display:flex;justify-content:center}
+.ball{width:30px;height:30px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-weight:800;font-size:.85rem;font-variant-numeric:tabular-nums}
+select{padding:9px 8px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit;max-width:100%}
+.gt{font-size:.95rem;margin:18px 0 0}
+.chip{background:var(--ink);color:var(--bg);border-radius:999px;padding:4px 10px;font-weight:700;font-size:.78rem;overflow-wrap:anywhere;line-height:1.3}
+.tc .tn{padding:7px 4px;font-size:.88rem;color:var(--mute);font-variant-numeric:tabular-nums}
 :root[data-theme="dark"][data-game="megasena"]{--or:#2fb67c;--or-ink:#04140d}
 :root[data-theme="dark"][data-game="lotofacil"]{--or:#c35ac8;--or-ink:#1a0619}
 .sizerow{margin-bottom:12px;gap:10px}
@@ -89,7 +121,7 @@ input[type=number]{width:64px;padding:9px 8px;border:1px solid var(--line);borde
 <body>
 <main>
 <header>
-<div class="seg" id="tabs" role="group" aria-label="Modalidade"></div>
+<div class="dd" id="tabs"></div>
 <h1 id="ttl">Gerador de jogos da Lotomania</h1>
 <p class="sub" id="desc"></p>
 </header>
@@ -109,26 +141,44 @@ input[type=number]{width:64px;padding:9px 8px;border:1px solid var(--line);borde
 <button class="btn" id="bNew"></button>
 <button class="btn" id="bClr">Limpar marcados</button>
 <button class="btn" id="bClrFx">Limpar fixos</button>
+<button class="btn" id="bTop">Mais sorteados</button>
 </div>
 </section>
-<a class="btn-extensao"
+<button class="btn-extensao"
    href="https://github.com/RoqueSPP/lotomaniaGenerator/raw/refs/heads/master/preenchedor-lotomania.zip"
    download>
-  ⬇ Extensão do Chrome para preenchimento dos jogos salvos no gerador
-</a>
+  ⬇ Extensão do Chrome para preenchimento
+</button>
 <section class="card" aria-label="Jogos">
 <h2>Seus jogos</h2>
 <div class="row">
 <button class="btn pri" id="bSave" disabled>Salvar jogo</button>
-<span class="row" style="gap:6px"><input type="number" id="qty" min="1" max="50" value="5" aria-label="Quantidade de jogos"><button class="btn" id="bMany">Gerar vários</button></span>
+<span class="row" style="gap:6px"><label for="qty" class="qtylabel">Qtd.</label><input type="number" id="qty" min="1" max="50" value="1" aria-label="Quantidade de jogos"><button class="btn" id="bMany">Gerar vários</button></span>
 </div>
 <p class="sub" id="gdesc" style="margin-top:8px"></p>
 <div class="games" id="games"></div>
 <p class="empty" id="empty">Nenhum jogo salvo ainda.</p>
 <div class="row" style="margin-top:12px">
+<button class="btn" id="bRes" disabled>Ver resultados</button>
 <button class="btn" id="bCopyAll">Copiar todos</button>
 <button class="btn" id="bClrG">Apagar jogos</button>
 </div>
+</section>
+<section class="card res" id="resCard" aria-label="Resultados dos jogos" hidden>
+<h2 id="resTitle">Resultados</h2>
+<div class="row"><label for="conc">Concurso</label><input type="number" id="conc" min="1" inputmode="numeric" placeholder="último"><button class="btn pri" id="bConf">Conferir</button><button class="btn" id="bResX">Fechar</button></div>
+<p class="sub" id="resInfo"></p>
+<div class="warn" id="resWarn" hidden></div>
+<div class="drawn" id="drawn" aria-label="Dezenas sorteadas"></div>
+<div class="games" id="resGames"></div>
+</section>
+<section class="card top" id="topCard" aria-label="Dezenas mais sorteadas" hidden>
+<h2 id="topTitle">Mais sorteados</h2>
+<div class="row"><label for="tGame">Modalidade</label><select id="tGame"></select><label for="tFrom">Do concurso</label><input type="number" id="tFrom" min="1" inputmode="numeric"><label for="tTo">ao concurso</label><input type="number" id="tTo" min="1" inputmode="numeric"><button class="btn pri" id="bTopGo">Aplicar</button><button class="btn" id="bTopX">Fechar</button></div>
+<div class="row" id="topUseRow" hidden><button class="btn pri" id="bTopUse">Completar jogo com os mais sorteados</button><button class="btn" id="bTopW">Sortear com peso nos mais sorteados</button><span class="sub" id="topUseHint"></span></div>
+<p class="sub" id="topInfo"></p>
+<div class="warn" id="topWarn" hidden></div>
+<div id="topGrid"></div>
 </section>
 </main>
 <div id="toast" role="status" aria-live="polite"></div>
@@ -136,11 +186,13 @@ input[type=number]{width:64px;padding:9px 8px;border:1px solid var(--line);borde
 <script>
 (function(){
 var GAMES={
-lotomania:{name:"Lotomania",key:"lotomania-v2",first:0,total:100,cols:10,min:50,max:50},
-megasena:{name:"Mega-Sena",key:"megasena-v1",first:1,total:60,cols:10,min:6,max:20},
-lotofacil:{name:"Lotofácil",key:"lotofacil-v1",first:1,total:25,cols:5,min:15,max:20}
+lotomania:{name:"Lotomania",api:"lotomania",key:"lotomania-v2",first:0,total:100,cols:10,min:50,max:50},
+megasena:{name:"Mega-Sena",api:"megasena",key:"megasena-v1",first:1,total:60,cols:10,min:6,max:20},
+lotofacil:{name:"Lotofácil",api:"lotofacil",key:"lotofacil-v1",first:1,total:25,cols:5,min:15,max:20},
+quina:{name:"Quina",api:"quina",key:"quina-v1",first:1,total:80,cols:10,min:5,max:15},
+maismilionaria:{name:"+Milionária",api:"maismilionaria",key:"maismilionaria-v1",first:1,total:50,cols:10,min:6,max:12}
 };
-var ORDER=["lotomania","megasena","lotofacil"],ACTIVE="loterias-ativo";
+var ORDER=["lotomania","megasena","lotofacil","quina","maismilionaria"],ACTIVE="loterias-ativo";
 var gid="lotomania",G=GAMES[gid],S;
 var $=function(i){return document.getElementById(i)};
 var pad=function(n){return n<10?"0"+n:""+n};
@@ -156,7 +208,16 @@ function save(){try{localStorage.setItem(G.key,JSON.stringify(S))}catch(e){}}
 var tt;function toast(m){var t=$("toast");t.textContent=m;t.classList.add("on");clearTimeout(tt);tt=setTimeout(function(){t.classList.remove("on")},2200)}
 
 var tabs=$("tabs"),tabBtns={};
-ORDER.forEach(function(id){var b=document.createElement("button");b.textContent=GAMES[id].name;b.onclick=function(){setGame(id)};tabs.appendChild(b);tabBtns[id]=b});
+var ddToggle=document.createElement("button");ddToggle.type="button";ddToggle.className="dd-toggle";
+ddToggle.setAttribute("aria-haspopup","listbox");ddToggle.setAttribute("aria-expanded","false");
+ddToggle.innerHTML='<span id="ddLabel"></span><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
+var ddMenu=document.createElement("div");ddMenu.className="dd-menu";ddMenu.hidden=true;ddMenu.setAttribute("role","listbox");
+function ddOpen(o){ddMenu.hidden=!o;ddToggle.setAttribute("aria-expanded",o?"true":"false")}
+ddToggle.onclick=function(){ddOpen(ddMenu.hidden)};
+tabs.appendChild(ddToggle);tabs.appendChild(ddMenu);
+ORDER.forEach(function(id){var b=document.createElement("button");b.type="button";b.setAttribute("role","option");b.textContent=GAMES[id].name;b.onclick=function(){ddOpen(false);setGame(id)};ddMenu.appendChild(b);tabBtns[id]=b});
+document.addEventListener("click",function(e){if(!tabs.contains(e.target))ddOpen(false)});
+document.addEventListener("keydown",function(e){if(e.key==="Escape")ddOpen(false)});
 
 var grid=$("grid"),cells={};
 function buildGrid(){
@@ -166,7 +227,7 @@ grid.style.maxWidth=G.cols<10?(G.cols*72)+"px":"none";
 for(var n=G.first;n<G.first+G.total;n++){(function(n){var b=document.createElement("button");b.className="n";b.textContent=pad(n);b.onclick=function(){tap(n)};grid.appendChild(b);cells[n]=b})(n)}}
 
 function setGame(id,skipSave){
-gid=id;G=GAMES[id];S=load();
+gid=id;G=GAMES[id];S=load();RQ++;RD=null;$("resCard").hidden=true;$("bConf").disabled=false;TQ++;$("topCard").hidden=true;$("bTopGo").disabled=false;
 document.documentElement.setAttribute("data-game",id);
 document.title="Gerador de jogos da "+G.name;
 try{if(!skipSave)localStorage.setItem(ACTIVE,id)}catch(e){}
@@ -199,7 +260,7 @@ return out.length===N?out.sort(function(a,b){return a-b}):null;
 
 function render(){
 var N=S.size,last=G.first+G.total-1;
-ORDER.forEach(function(id){tabBtns[id].setAttribute("aria-pressed",id===gid?"true":"false")});
+ORDER.forEach(function(id){tabBtns[id].setAttribute("aria-pressed",id===gid?"true":"false")});$("ddLabel").textContent=G.name;
 $("ttl").textContent="Gerador de jogos da "+G.name;
 $("desc").textContent="Selecione quantos números quiser entre "+pad(G.first)+" e "+pad(last)+". Cada jogo terá "+N+" números sorteados entre os selecionados. Fixe os que devem aparecer em todos os jogos.";
 $("gdesc").textContent="Cada jogo terá "+N+" números escolhidos aleatoriamente entre os números selecionados acima. Os números fixos aparecem em todos os jogos. Selecione pelo menos "+N+" números para gerar jogos.";
@@ -230,7 +291,7 @@ var p=document.createElement("div");p.className="nums";
 g.forEach(function(n,k){if(k)p.appendChild(document.createTextNode(" "));if(has(S.fix,n)){var m=document.createElement("mark");m.textContent=pad(n);p.appendChild(m)}else p.appendChild(document.createTextNode(pad(n)))});
 d.appendChild(h);d.appendChild(p);box.appendChild(d)});
 $("empty").style.display=S.games.length?"none":"block";
-$("bCopyAll").disabled=$("bClrG").disabled=!S.games.length}
+$("bCopyAll").disabled=$("bClrG").disabled=$("bRes").disabled=!S.games.length;if(RD)paintRes()}
 
 function copy(txt,msg){
 function ok(){toast(msg)}
@@ -240,7 +301,7 @@ function fb(){var a=document.createElement("textarea");a.value=txt;document.body
 $("mSel").onclick=function(){S.mode="sel";render();save()};
 $("mFix").onclick=function(){S.mode="fix";render();save()};
 $("size").onchange=function(){S.size=clampSize($("size").value);render();save()};
-$("bComp").onclick=function(){if(S.sel.length>S.size){toast("Você já selecionou mais de "+S.size+". Use “Sortear "+S.size+" dos selecionados”.");return}S.sel=pick(S.sel);render();save()};
+$("bComp").onclick=function(){if(S.sel.length>S.size){toast("Você já selecionou mais de "+S.size+". Use “Sortear "+S.size+" dos selecionados”.");return}if(S.sel.length===S.size){if(S.fix.length>S.size){toast("Você marcou mais de "+S.size+" números fixos.");return}S.sel=pick(S.fix);render();save();toast("Jogo apagado e novo jogo gerado.");return}S.sel=pick(S.sel);render();save()};
 $("bNew").onclick=function(){
 if(S.sel.length<S.size){toast("Selecione pelo menos "+S.size+" números primeiro.");return}
 var g=pickFromSelected();
@@ -275,6 +336,163 @@ else toast(made+(made>1?" jogos gerados.":" jogo gerado."));
 };
 $("bCopyAll").onclick=function(){copy(G.name+"\n"+S.games.map(function(g,i){return "Jogo "+(i+1)+": "+fmt(g)}).join("\n"),"Jogos copiados.")};
 $("bClrG").onclick=function(){if(confirm("Apagar todos os jogos salvos de "+G.name+"?")){S.games=[];render();save()}};
+
+var BASE="https://raw.githubusercontent.com/maickon/free-apiloterias/refs/heads/master/database/";
+var MSIZE={lotomania:50,megasena:6,lotofacil:15,quina:5,maismilionaria:6};
+var RD=null,RQ=0;
+function comb(n,k){if(k<0||k>n)return 0;k=Math.min(k,n-k);var r=1;for(var i=1;i<=k;i++)r=r*(n-k+i)/i;return Math.round(r)}
+function getJSON(u){return fetch(u,{cache:"no-store"}).then(function(r){if(!r.ok)throw new Error("HTTP "+r.status);return r.json()})}
+function fwd(api,d,i){if(i>=15)return Promise.resolve(d);return getJSON(BASE+api+"/"+(d.numero+1)+".json").then(function(n){return fwd(api,n,i+1)},function(){return d})}
+function money(v){return v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})}
+function parseBR(s){var p=String(s||"").split("/");return p.length===3?new Date(+p[2],+p[1]-1,+p[0]):null}
+function loadRes(){
+var id=gid,api=G.api,num=parseInt($("conc").value,10),q=++RQ,latest=!(num>0);
+$("resCard").hidden=false;$("resTitle").textContent="Resultados · "+G.name;
+$("resInfo").textContent="Buscando resultado…";$("resWarn").hidden=true;$("drawn").innerHTML="";$("resGames").innerHTML="";$("bConf").disabled=true;
+var p=latest?getJSON(BASE+api+"/_ultimo.json").then(function(d){return fwd(api,d,0)}):getJSON(BASE+api+"/"+num+".json");
+p.then(function(d){if(q!==RQ||id!==gid)return;d.__latest=latest;RD=d;paintRes()},function(){if(q!==RQ||id!==gid)return;RD=null;$("resInfo").textContent=latest?"Não foi possível buscar o resultado. Verifique a conexão e tente de novo.":"Concurso "+num+" não encontrado na API.";toast("Falha ao buscar o resultado.")}).then(function(){if(q===RQ)$("bConf").disabled=false});
+}
+function paintRes(){
+var d=RD;if(!d)return;
+var drawn=(d.listaDezenas||[]).map(Number),set={};drawn.forEach(function(n){set[n]=1});
+var pr={};if(gid!=="maismilionaria")(d.listaRateioPremio||[]).forEach(function(f){var j=parseInt(f.descricaoFaixa,10);if(isFinite(j))pr[j]=f.valorPremio||0});
+var m=MSIZE[gid],best=0,nWin=0,total=0;
+var rows=S.games.map(function(g){
+var h=g.filter(function(n){return set[n]}).length,k=g.length,wins=0,val=0;
+Object.keys(pr).forEach(function(j){j=+j;var c=comb(h,j)*comb(k-h,m-j);if(c){wins+=c;val+=c*pr[j]}});
+if(h>best)best=h;if(wins)nWin++;total+=val;
+return {g:g,h:h,wins:wins,val:val}});
+$("resTitle").textContent="Resultados · "+G.name+" · Concurso "+d.numero+" ("+d.dataApuracao+")";
+$("resInfo").textContent=S.games.length?("Melhor jogo: "+best+" acerto"+(best===1?"":"s")+" · "+nWin+" jogo"+(nWin===1?"":"s")+" premiado"+(nWin===1?"":"s")+(total?" · total "+money(total):"")+". Valores do rateio do concurso, por aposta ganhadora."):"Nenhum jogo salvo para conferir.";
+var dt=parseBR(d.dataApuracao),days=dt?Math.floor((Date.now()-dt.getTime())/864e5):0,w=$("resWarn");
+if(d.__latest&&days>14){w.textContent="Este é o resultado mais recente disponível na API gratuita, mas é de "+days+" dias atrás. A base pode estar desatualizada; confira também no site da Caixa.";w.hidden=false}else w.hidden=true;
+var dr=$("drawn");dr.innerHTML="";drawn.forEach(function(n){var s=document.createElement("span");s.textContent=pad(n);dr.appendChild(s)});
+if(gid==="maismilionaria"){var tv=(d.trevosSorteados||[]).join(" e ");$("resInfo").textContent+=" Trevos sorteados: "+(tv||"—")+". A premiação da +Milionária depende dos trevos e não é calculada aqui; confira o valor no site da Caixa."}
+var box=$("resGames");box.innerHTML="";
+rows.forEach(function(r,idx){
+var c=document.createElement("div");c.className="game";
+var h=document.createElement("header");
+var t=document.createElement("span");t.textContent="Jogo "+(idx+1);
+var b=document.createElement("span");b.className="badge"+(r.wins?" win":"");
+b.textContent=r.h+" acerto"+(r.h===1?"":"s")+(r.wins?(r.val?" · "+money(r.val):" · faixa premiada"):"");
+h.appendChild(t);h.appendChild(b);
+var p=document.createElement("div");p.className="nums";
+r.g.forEach(function(n,k){if(k)p.appendChild(document.createTextNode(" "));if(set[n]){var m2=document.createElement("span");m2.className="hit";m2.textContent=pad(n);p.appendChild(m2)}else p.appendChild(document.createTextNode(pad(n)))});
+c.appendChild(h);c.appendChild(p);box.appendChild(c)})}
+$("bRes").onclick=function(){$("conc").value="";loadRes()};
+$("bConf").onclick=loadRes;
+$("conc").onkeydown=function(e){if(e.key==="Enter")loadRes()};
+$("bResX").onclick=function(){RQ++;RD=null;$("resCard").hidden=true;$("bConf").disabled=false};
+
+var RANK={
+lotomania:{name:"Lotomania",api:"lotomania",first:0,total:100},
+megasena:{name:"Mega-Sena",api:"megasena",first:1,total:60},
+lotofacil:{name:"Lotofácil",api:"lotofacil",first:1,total:25},
+quina:{name:"Quina",api:"quina",first:1,total:80},
+duplasena:{name:"Dupla Sena",api:"duplasena",first:1,total:50,second:true},
+diadesorte:{name:"Dia de Sorte",api:"diadesorte",first:1,total:31,extra:"mes"},
+timemania:{name:"Timemania",api:"timemania",first:1,total:80,extra:"time"},
+maismilionaria:{name:"Mais Milionária",api:"maismilionaria",first:1,total:50,extra:"trevo"},
+supersete:{name:"Super Sete",api:"supersete",cols:7}
+};
+var RORDER=["lotomania","megasena","lotofacil","quina","duplasena","diadesorte","timemania","maismilionaria","supersete"];
+var MESES=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+var TOP={},TQ=0,topId="lotomania",LR=null;
+RORDER.forEach(function(id){var o=document.createElement("option");o.value=id;o.textContent=RANK[id].name;$("tGame").appendChild(o)});
+function nums(a){return (a||[]).map(Number)}
+function pack(x){return {n:x.numero,d:x.dataApuracao,z:nums(x.listaDezenas),z2:nums(x.listaDezenasSegundoSorteio),t:nums(x.trevosSorteados),e:String(x.nomeTimeCoracaoMesSorte||"").replace(/\u0000/g,"").replace(/\s+/g," ").trim()}}
+function more(api,list,i){if(i>=40)return Promise.resolve(list);return getJSON(BASE+api+"/"+(list[list.length-1].n+1)+".json").then(function(x){list.push(pack(x));return more(api,list,i+1)},function(){return list})}
+function loadAll(id){
+if(TOP[id])return Promise.resolve(TOP[id]);
+var api=RANK[id].api;
+return getJSON(BASE+api+"/_todos.json").then(function(arr){var list=arr.map(pack);list.sort(function(a,b){return a.n-b.n});return more(api,list,0)}).then(function(list){TOP[id]=list;return list})}
+function showTop(id){
+var q=++TQ;topId=id;
+$("tGame").value=id;$("topTitle").textContent="Mais sorteados · "+RANK[id].name;
+$("topInfo").textContent="Carregando histórico de concursos…";$("topWarn").hidden=true;$("topGrid").innerHTML="";$("bTopGo").disabled=true;LR=null;syncUse();
+loadAll(id).then(function(list){if(q!==TQ)return;$("tFrom").value=list[0].n;$("tTo").value=list[list.length-1].n;paintTop()},function(){if(q!==TQ)return;$("topInfo").textContent="Não foi possível carregar o histórico. Verifique a conexão e tente de novo.";toast("Falha ao carregar o histórico.")}).then(function(){if(q===TQ)$("bTopGo").disabled=false})}
+function syncUse(){
+var row=$("topUseRow"),ok=!!GAMES[topId];row.hidden=!ok;if(!ok)return;
+var on=topId===gid&&LR&&LR.id===topId;
+$("bTopUse").disabled=$("bTopW").disabled=!on;
+$("topUseHint").textContent=topId===gid?"Usa a contagem do intervalo aplicado e mantém seus números fixos.":"O volante está em "+G.name+". Troque a aba para "+GAMES[topId].name+" para usar.";
+}
+function useTop(weighted){
+if(!LR||LR.id!==gid||topId!==gid)return;
+var N=S.size;
+if(S.sel.length>N){toast("Você já selecionou mais de "+N+". Use “Sortear "+N+" dos selecionados”.");return}
+if(S.fix.length>N){toast("Você marcou mais de "+N+" números fixos.");return}
+var replaced=S.sel.length===N,base=replaced?S.fix.slice():S.sel.slice(),i;
+if(!weighted){
+for(i=0;i<LR.order.length&&base.length<N;i++){if(!has(base,LR.order[i]))base.push(LR.order[i])}
+}else{
+var pool=LR.order.filter(function(n){return !has(base,n)}),min=Infinity;
+LR.order.forEach(function(n){if(LR.cnt[n]<min)min=LR.cnt[n]});
+while(base.length<N&&pool.length){
+var tot=0;pool.forEach(function(n){tot+=LR.cnt[n]-min+1});
+var r=Math.random()*tot,k=0;
+for(;k<pool.length-1;k++){r-=LR.cnt[pool[k]]-min+1;if(r<0)break}
+base.push(pool.splice(k,1)[0])}
+}
+S.sel=base;render();save();
+$("grid").scrollIntoView({behavior:"smooth",block:"center"});
+toast((replaced?"Jogo substituído ":"Jogo completado ")+(weighted?"com sorteio ponderado pelos mais sorteados":"com os mais sorteados")+" (concursos "+LR.a+" a "+LR.b+").")}
+function openTop(){$("topCard").hidden=false;showTop(gid);$("topCard").scrollIntoView({behavior:"smooth",block:"nearest"})}
+function toGroup(title,obj,ball,limit,padIt){
+var items=Object.keys(obj).map(function(k){return {k:ball?+k:k,l:ball?(padIt?pad(+k):k):k,c:obj[k],b:ball}});
+items.sort(function(x,y){return y.c-x.c||(ball?x.k-y.k:String(x.k).localeCompare(String(y.k),"pt-BR"))});
+if(limit)items=items.slice(0,limit);
+return {t:title,items:items}}
+function paintTop(){
+var K=RANK[topId],list=TOP[topId];if(!list)return;
+var first=list[0].n,lastItem=list[list.length-1],last=lastItem.n;
+var a=parseInt($("tFrom").value,10),b=parseInt($("tTo").value,10);
+if(!isFinite(a))a=first;if(!isFinite(b))b=last;
+a=Math.max(first,Math.min(last,a));b=Math.max(first,Math.min(last,b));
+if(a>b){var t=a;a=b;b=t}
+$("tFrom").value=a;$("tTo").value=b;
+var main={},tr={},ex={},cols=[],tot=0,n,c;
+if(K.cols){for(c=0;c<K.cols;c++){cols.push({});for(n=0;n<10;n++)cols[c][n]=0}}
+else for(n=K.first;n<K.first+K.total;n++)main[n]=0;
+if(K.extra==="trevo")for(n=1;n<=6;n++)tr[n]=0;
+if(K.extra==="mes")MESES.forEach(function(m){ex[m]=0});
+list.forEach(function(x){
+if(x.n<a||x.n>b)return;tot++;
+if(K.cols){x.z.forEach(function(z,i){if(cols[i]&&cols[i][z]!==undefined)cols[i][z]++});return}
+x.z.concat(K.second?x.z2:[]).forEach(function(z){if(main[z]!==undefined)main[z]++});
+if(K.extra==="trevo")x.t.forEach(function(z){if(tr[z]!==undefined)tr[z]++});
+else if(K.extra){var e=x.e;if(K.extra==="mes"&&/^\d+$/.test(e))e=MESES[+e-1]||e;if(e)ex[e]=(ex[e]||0)+1}});
+var groups=[];
+if(K.cols){cols.forEach(function(o,i){groups.push(toGroup("Coluna "+(i+1),o,true,0,false))})}
+else{
+groups.push(toGroup(K.second?"Dezenas (1º e 2º sorteios somados)":"",main,true,0,true));
+if(K.extra==="trevo")groups.push(toGroup("Trevos",tr,true,0,false));
+if(K.extra==="mes")groups.push(toGroup("Mês de Sorte",ex,false,0));
+if(K.extra==="time")groups.push(toGroup("Times do Coração (20 mais sorteados)",ex,false,20))}
+$("topInfo").textContent="Concursos "+a+" a "+b+" ("+tot+" sorteio"+(tot===1?"":"s")+"). Último concurso na base: "+last+" ("+lastItem.d+").";
+var dt=parseBR(lastItem.d),days=dt?Math.floor((Date.now()-dt.getTime())/864e5):0,w=$("topWarn");
+if(days>14){w.textContent="A base da API gratuita termina em "+lastItem.d+" ("+days+" dias atrás), então os sorteios mais recentes não entram na contagem.";w.hidden=false}else w.hidden=true;
+LR=K.cols?null:{id:topId,a:a,b:b,order:groups[0].items.map(function(it){return it.k}),cnt:main};
+syncUse();
+var box=$("topGrid");box.innerHTML="";
+groups.forEach(function(g){
+if(g.t){var h=document.createElement("h3");h.className="gt";h.textContent=g.t;box.appendChild(h)}
+var gr=document.createElement("div");gr.className="topgrid";
+if(!g.items.length||!g.items[0].b)gr.style.gridTemplateColumns="repeat(auto-fill,minmax(130px,1fr))";
+g.items.forEach(function(it){
+var cd=document.createElement("div");cd.className="tc";
+var tb=document.createElement("div");tb.className="tb";
+var lb=document.createElement("span");lb.className=it.b?"ball":"chip";lb.textContent=it.l;tb.appendChild(lb);
+var tn=document.createElement("div");tn.className="tn";tn.textContent=it.c+(it.c===1?" vez":" vezes");
+cd.appendChild(tb);cd.appendChild(tn);gr.appendChild(cd)});
+box.appendChild(gr)})}
+$("bTop").onclick=openTop;
+$("bTopUse").onclick=function(){useTop(false)};
+$("bTopW").onclick=function(){useTop(true)};
+$("tGame").onchange=function(){showTop($("tGame").value)};
+$("bTopGo").onclick=paintTop;
+$("tFrom").onkeydown=$("tTo").onkeydown=function(e){if(e.key==="Enter")paintTop()};
+$("bTopX").onclick=function(){TQ++;$("topCard").hidden=true;$("bTopGo").disabled=false};
 
 var start="lotomania";try{var a=localStorage.getItem(ACTIVE);if(a&&GAMES[a])start=a}catch(e){}
 setGame(start,true);
